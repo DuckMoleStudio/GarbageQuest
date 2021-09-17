@@ -14,6 +14,7 @@ import java.time.LocalTime;
 
 public class WayPoint {
 
+    long index;
     double lat, lon;
     String description;
     LocalTime timeOpen, timeClose;

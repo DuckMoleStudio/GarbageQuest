@@ -15,11 +15,11 @@ public class MockInput {
     {
         List<WayPoint> wayPoints = new ArrayList<>();
         // --- CONTROLS START ---
-        int qty = 100; // how many
-        double latStart = 55.65; // more or less MSU region
-        double latEnd = 55.7;
-        double lonStart = 37.5;
-        double lonEnd = 37.6;
+        int qty = 50; // how many
+        double latStart = 55.77; // more or less ZAO region
+        double latEnd = 55.81;
+        double lonStart = 37.47;
+        double lonEnd = 37.5;
         DistType lonDist = DistType.Equal; // distribution: equal, gaussian, (pseudo)expo ascending or descending
         DistType latDist = DistType.Gauss;
 
@@ -28,16 +28,17 @@ public class MockInput {
         DistType timeDist = DistType.Descend;
 
         int intervalMin = 1; // from open to close, hours
-        int intervalMax = 8; // non-inclusive
+        int intervalMax = 7; // non-inclusive
         DistType intervalDist = DistType.Ascend;
         // --- CONTROLS END ---
 
         // BASE & DUMP MANUALLY
-        wayPoints.add(new WayPoint(55.7, 37.5, "BASE",
+        wayPoints.add(new WayPoint(0, 55.766, 37.532, "BASE",  //MKM-logistika
                 LocalTime.parse("06:00"), LocalTime.parse("08:00"), Duration.ofMinutes(1),
                 WayPointType.Base, 1));
-        wayPoints.add(new WayPoint(55.7, 37.6, "DUMP SITE",
-                LocalTime.parse("06:00"), LocalTime.parse("08:00"), Duration.ofMinutes(40),
+        wayPoints.add(new WayPoint(1,  55.669, 37.5, "DUMP SITE", // 55.769 37.5 Силикатный  55.376 39 Egoryevsk
+                LocalTime.of(timeStartMin,0), LocalTime.of(timeStartMax+intervalMax,0),
+                Duration.ofMinutes(30),
                 WayPointType.Garbage_Dump, 1));
 
         Random random = new Random();
@@ -144,7 +145,7 @@ public class MockInput {
             }
 
             String desc = "Garbage site # "+(i+1);
-            wayPoints.add(new WayPoint(lat, lon, desc, startTime, endTime, Duration.ofMinutes(10),
+            wayPoints.add(new WayPoint(i+2, lat, lon, desc, startTime, endTime, Duration.ofMinutes(10),
                     WayPointType.Garbage_Site, 1));
 
         }
