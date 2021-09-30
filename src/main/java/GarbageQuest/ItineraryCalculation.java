@@ -1,6 +1,7 @@
 package GarbageQuest;
 
 import GarbageQuest.entity.*;
+import GarbageQuest.service.AlgGreedyMatrixMapV01;
 import GarbageQuest.service.AlgGreedyMatrixV01;
 import GarbageQuest.supplimentary.DistType;
 import GarbageQuest.supplimentary.MockTimeSlots;
@@ -12,9 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.round;
@@ -23,7 +22,7 @@ public class ItineraryCalculation {
     public static void main(String[] args) {
 
         // ----- CONTROLS (set before use) -----------
-        String jsonInputFile = "C:\\Users\\User\\Documents\\GD\\horoshevo.json"; // should exist!
+        String jsonInputFile = "C:\\Users\\User\\Documents\\GD\\kuntsevo-m.json"; // should exist!
 
         // random timeslot generation params
         boolean newRandomTime = false; // do we need timeslots recalculation
@@ -41,17 +40,21 @@ public class ItineraryCalculation {
         boolean fullItinerary = false; // all with waypoints
         boolean shortItinerary = true; // all as summary
 
-        String urlOutputFile = "C:\\Users\\User\\Documents\\GD\\horoshevo.txt";
+        String urlOutputFile = "C:\\Users\\User\\Documents\\GD\\zao002.txt";
         // ----- CONTROLS END ---------
 
 
         // ------- RESTORE MATRIX FROM JSON FILE ---------
-        List<WayPoint> wayPointList1 = new ArrayList<>();
-        List<MatrixLine> matrix1 = new ArrayList<>();
-        List<MatrixStorageLine> inMatrix = new ArrayList<>();
 
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
+
+
+        List<WayPoint> wayPointList = new ArrayList<>();
+        List<MatrixLine> matrix = new ArrayList<>();
+        List<MatrixStorageLine> inMatrix = new ArrayList<>();
+
+
         String inString = null;
         try {
             inString = new String(Files.readAllBytes(Paths.get(jsonInputFile)));
@@ -69,7 +72,7 @@ public class ItineraryCalculation {
         }
 
         for (MatrixStorageLine msl : inMatrix) {
-            wayPointList1.add(msl.getWayPoint());
+            wayPointList.add(msl.getWayPoint());
         }
 
         for (MatrixStorageLine msl : inMatrix) {
@@ -77,17 +80,23 @@ public class ItineraryCalculation {
             ml.setWayPoint(msl.getWayPoint());
             List<MatrixElement> distances = new ArrayList<>();
             for (int i = 0; i < msl.getDistances().size(); i++) {
-                distances.add(new MatrixElement(wayPointList1.get(i), msl.getDistances().get(i)));
+                distances.add(new MatrixElement(wayPointList.get(i), msl.getDistances().get(i)));
             }
             ml.setDistances(distances);
-            matrix1.add(ml);
+            matrix.add(ml);
         }
-        System.out.println("\nRestored matrix from: " + jsonInputFile);
+        System.out.println("\nRestored matrix from: " +
+                jsonInputFile +
+                " " +
+                wayPointList.size() +
+                " " +
+                matrix.size());
+
 
         // ------- APPLY NEW RANDOM TIMESLOTS IF DESIRED --------
         if(newRandomTime)
         MockTimeSlots.fill(
-                wayPointList1,
+                wayPointList,
                 timeStartMin,
                 timeStartMax,
                 timeDist,
@@ -97,8 +106,9 @@ public class ItineraryCalculation {
         );
 
         // ------- NOW RUN ALGO -------
+
         double startTime = System.currentTimeMillis();
-        Result rr = AlgGreedyMatrixV01.Calculate(wayPointList1, matrix1, avgSpeed, capacity);
+        Result rr = AlgGreedyMatrixV01.Calculate(wayPointList, matrix, avgSpeed, capacity);
         double elapsedTime = System.currentTimeMillis() - startTime;
 
         // ------- DISPLAY IN DESIRED FORMAT ------
@@ -127,6 +137,9 @@ public class ItineraryCalculation {
         System.out.println("\n\nTotal distance: " + round(rr.getDistanceTotal()) / 1000 + " km");
         System.out.println("Cars assigned: " + rr.getItineraryQty());
         System.out.println("Calculated in: " + elapsedTime + " ms");
+
+
+
 
         // ----- SAVE RESULTS FOR VISUALISATION ------
         //https://graphhopper.com/maps/?

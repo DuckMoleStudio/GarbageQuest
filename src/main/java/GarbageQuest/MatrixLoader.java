@@ -2,6 +2,7 @@ package GarbageQuest;
 
 import GarbageQuest.entity.*;
 import GarbageQuest.mosData.GarbageSiteMD;
+import GarbageQuest.service.AlgGreedyMatrixMapV01;
 import GarbageQuest.service.AlgGreedyMatrixV01;
 import GarbageQuest.service.Matrix;
 import GarbageQuest.service.MosDataImport;
@@ -21,6 +22,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.round;
@@ -31,7 +33,7 @@ public class MatrixLoader {
         // ----- CONTROLS (set before use) -----------
         String jsonInputFile = "C:\\Users\\User\\Documents\\GD\\MDjson-ALL.json";
         boolean filterByRegion = true; // true for Region, false for AO
-        String filter = "район Хорошёво-Мнёвники"; // "Северо-Восточный административный округ", ...
+        String filter = "район Кунцево"; // "Северо-Восточный административный округ", ...
 
         // random timeslot generation params
         int timeStartMin = 6; // opening time, hours in 24h
@@ -45,7 +47,8 @@ public class MatrixLoader {
         String osmFile = "C:/Users/User/Downloads/RU-MOW.osm.pbf";
         String dir = "local/graphhopper";
 
-        String jsonOutputFile = "C:\\Users\\User\\Documents\\GD\\horoshevo.json";
+        String jsonOutputFile = "C:\\Users\\User\\Documents\\GD\\kuntsevo.json";
+
         boolean runAlgo = true; // execute itinerary routing algo at this stage?
         int avgSpeed = 10; // Average garbage car speed in m/s, 10 is roughly 30 km/h
         int capacity = 25; // garbage car capacity in abstract units
@@ -94,14 +97,17 @@ public class MatrixLoader {
         );
 
         // ------ NOW FILL THE MATRIX -----
+
         StopWatch sw = new StopWatch().start();
         List<MatrixLine> matrix = Matrix.FillGHMulti4(wayPointList, osmFile, dir);
         System.out.println("\nMatrix calculated in: " + sw.stop().getSeconds() + " s\n");
 
-
         // ----- AND SAVE THE MATRIX IN JSON -----
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
+
+
+
         try (FileWriter writer = new FileWriter(jsonOutputFile)) {
             for (WayPoint wp : wayPointList) {
                 for (MatrixLine ml : matrix) {
@@ -124,12 +130,17 @@ public class MatrixLoader {
             System.out.println(ex.getMessage());
         }
 
+
+
+
+
         System.out.println("Saved as: " + jsonOutputFile);
 
 
         // ----- EXECUTE ITINERARY ALGORITHM IF DESIRED -----
         if(runAlgo)
         {
+
             long startTime = System.currentTimeMillis();
             Result rr = AlgGreedyMatrixV01.Calculate(wayPointList, matrix, avgSpeed, capacity);
             long elapsedTime = System.currentTimeMillis() - startTime;
@@ -137,6 +148,8 @@ public class MatrixLoader {
             System.out.println("\n\nTotal distance: " + round(rr.getDistanceTotal()) / 1000 + " km");
             System.out.println("Cars assigned: " + rr.getItineraryQty());
             System.out.println("Calculated in: " + elapsedTime + " ms");
+
+
         }
 
 

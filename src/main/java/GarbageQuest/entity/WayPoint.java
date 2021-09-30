@@ -11,6 +11,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@EqualsAndHashCode
 
 public class WayPoint {
 
