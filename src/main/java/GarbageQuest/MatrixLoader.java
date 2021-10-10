@@ -2,28 +2,21 @@ package GarbageQuest;
 
 import GarbageQuest.entity.*;
 import GarbageQuest.mosData.GarbageSiteMD;
-import GarbageQuest.service.AlgGreedyMatrixMapV01;
 import GarbageQuest.service.AlgGreedyMatrixV01;
 import GarbageQuest.service.Matrix;
-import GarbageQuest.service.MosDataImport;
+import GarbageQuest.service.MosDataImportGarbage;
 import GarbageQuest.supplimentary.DistType;
 import GarbageQuest.supplimentary.MockTimeSlots;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.graphhopper.util.StopWatch;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.lang.Math.round;
 
@@ -57,15 +50,15 @@ public class MatrixLoader {
 
         System.out.println("Criteria : " + filter);
         // ----- IMPORT FROM MOSDATA JSON & FILTER ------
-        List<GarbageSiteMD> input = MosDataImport.Load(jsonInputFile);
+        List<GarbageSiteMD> input = MosDataImportGarbage.Load(jsonInputFile);
         List<WayPoint> wayPointList = new ArrayList<>();
         for (GarbageSiteMD gs : input) {
             if ((gs.getYardLocation()[0].getDistrict().equals(filter) && filterByRegion)
                     || (gs.getYardLocation()[0].getAdmArea().equals(filter) && !filterByRegion)) {
                 WayPoint wp = new WayPoint();
                 wp.setIndex(gs.getGlobal_id());
-                wp.setLat(gs.getGeoData().getCoordinates()[1]);
-                wp.setLon(gs.getGeoData().getCoordinates()[0]);
+                //wp.setLat(gs.getGeoData().getCoordinates()[1]);
+                //wp.setLon(gs.getGeoData().getCoordinates()[0]);
                 wp.setDescription(gs.getYardName());
                 wp.setDuration(Duration.ofMinutes(10));
                 wp.setType(WayPointType.Garbage_Site);

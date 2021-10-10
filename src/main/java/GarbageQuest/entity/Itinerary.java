@@ -11,10 +11,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@EqualsAndHashCode
+
 public class Itinerary {
 
     Car car;
     List<WayPoint> wayPointList;
+    List<LocalTime> arrivals;
     LocalTime timeStart, timeEnd;
     double distance;
 }

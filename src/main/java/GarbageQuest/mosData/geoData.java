@@ -11,5 +11,5 @@ import lombok.*;
 
 public class geoData {
     String type;
-    double[] coordinates;
+    double[][][] coordinates;
 }

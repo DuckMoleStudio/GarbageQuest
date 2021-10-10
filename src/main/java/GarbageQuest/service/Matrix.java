@@ -1,9 +1,6 @@
 package GarbageQuest.service;
 
-import GarbageQuest.entity.MatrixElement;
-import GarbageQuest.entity.MatrixLine;
-import GarbageQuest.entity.MatrixLineMap;
-import GarbageQuest.entity.WayPoint;
+import GarbageQuest.entity.*;
 import com.graphhopper.GHRequest;
 import com.graphhopper.GHResponse;
 import com.graphhopper.GraphHopper;
@@ -55,12 +52,17 @@ public class Matrix {
     // using Graph Hopper on real map, with 4 threads
     {
         List<MatrixLine> matrix = new ArrayList<>();
-
+        /*
         GraphHopper hopper = new GraphHopperOSM().forServer();
 
         hopper.setEncodingManager(EncodingManager.create("car"));
         hopper.setGraphHopperLocation(dir);
         hopper.setDataReaderFile(osmFile);
+
+         */
+        GraphHopper hopper = new GraphHopper();
+        hopper.setOSMFile(osmFile);
+        hopper.setGraphHopperLocation(dir);
 
         // see docs/core/profiles.md to learn more about profiles
         hopper.setProfiles(
@@ -169,22 +171,27 @@ public class Matrix {
     }
 
     public static Map<WayPoint, MatrixLineMap> FillGHMulti4Map(
-            List<WayPoint> wayPoints, String osmFile, String dir, boolean turns, boolean curbs)
+            List<WayPoint> wayPoints, String osmFile, String dir, boolean turns, boolean curbs, boolean time)
     // using Graph Hopper on real map, with 4 threads, store in HashMap
     {
 
         Map<WayPoint, MatrixLineMap> matrix = new HashMap<>();
-
+/*
         GraphHopper hopper = new GraphHopperOSM().forServer();
 
         hopper.setEncodingManager(EncodingManager.create("car|turn_costs=true"));
         hopper.setGraphHopperLocation(dir);
         hopper.setDataReaderFile(osmFile);
 
+ */
+        GraphHopper hopper = new GraphHopper();
+        hopper.setOSMFile(osmFile);
+        hopper.setGraphHopperLocation(dir);
+
         // see docs/core/profiles.md to learn more about profiles
         hopper.setProfiles(
                 new Profile("car1").setVehicle("car").setWeighting("shortest").setTurnCosts(false),
-                new Profile("car2").setVehicle("car").setWeighting("shortest").setTurnCosts(true)
+                new Profile("car2").setVehicle("car").setWeighting("fastest").setTurnCosts(true).putHint("u_turn_costs", 60)
         );
 
         // this enables speed mode for the profile we call "car" here
@@ -221,7 +228,11 @@ public class Matrix {
                                     .setProfile(finalProfile)
                                     .setAlgorithm(Parameters.Algorithms.ASTAR_BI);
 
-                            if(curbs) req.setCurbsides(Arrays.asList("any", "right"));
+                            if(curbs)
+                            {
+                                req.setCurbsides(Arrays.asList("right", "right"));
+                                //req.putHint("u_turn_costs", 6000);
+                            }
 
                             req.putHint("instructions", false);
                             req.putHint("calc_points", false);
@@ -229,10 +240,19 @@ public class Matrix {
 
                             GHResponse res = hopper.route(req);
 
-                            if (res.hasErrors())
-                                throw new RuntimeException(res.getErrors().toString());
+                            double distance = Double.POSITIVE_INFINITY;
 
-                            double distance = res.getBest().getDistance();
+                            if (res.hasErrors()) {
+                               // throw new RuntimeException(res.getErrors().toString());
+
+                            }
+                            else {
+
+                                if (time) {distance = res.getBest().getTime();}
+                                else distance = res.getBest().getDistance();
+                            }
+
+
                             line.getDistances().put(wayPoints.get(j),distance);
                         }
                     }
@@ -301,17 +321,93 @@ public class Matrix {
         return matrix;
     }
 
+    public static DoubleMatrix FillGHDoubleTime(
+            List<WayPoint> wayPoints, String osmFile, String dir, WayPoint base)
+    // using Graph Hopper on real map, store in two (maybe) HashMaps, time-based
+    {
+
+        Map<WayPoint, MatrixLineMap> matrixGood = new HashMap<>();
+        Map<WayPoint, MatrixLineMap> matrixBad = new HashMap<>();
+        List<WayPoint> wayPointsGood = new ArrayList<>();
+        List<WayPoint> wayPointsBad = new ArrayList<>();
+/*
+        GraphHopper hopper = new GraphHopperOSM().forServer();
+
+        hopper.setEncodingManager(EncodingManager.create("car|turn_costs=true"));
+        hopper.setGraphHopperLocation(dir);
+        hopper.setDataReaderFile(osmFile);
+
+ */
+        GraphHopper hopper = new GraphHopper();
+        hopper.setOSMFile(osmFile);
+        hopper.setGraphHopperLocation(dir);
+
+        // see docs/core/profiles.md to learn more about profiles
+        hopper.setProfiles(
+                new Profile("car1").setVehicle("car").setWeighting("shortest").setTurnCosts(false),
+                new Profile("car2").setVehicle("car").setWeighting("fastest").setTurnCosts(true).putHint("u_turn_costs", 60)
+        );
+
+        // this enables speed mode for the profile we call "car" here
+        hopper.getCHPreparationHandler().setCHProfiles(new CHProfile("car1"),new CHProfile("car2"));
+
+        hopper.importOrLoad();
+
+        for(WayPoint wp : wayPoints)
+        {
+            GHRequest req = new GHRequest(
+                    base.getLat()
+                    , base.getLon()
+                    , wp.getLat()
+                    , wp.getLon())
+                    .setProfile("car2")
+                    .setCurbsides(Arrays.asList("any", "right"))
+                    .setAlgorithm(Parameters.Algorithms.ASTAR_BI);
+
+            req.putHint("instructions", false);
+            req.putHint("calc_points", false);
+            //req.putHint(Parameters.Routing.FORCE_CURBSIDE, false);
+
+            GHResponse res = hopper.route(req);
+
+            if (res.hasErrors())  //throw new RuntimeException(res.getErrors().toString());
+            {wayPointsBad.add(wp);}
+            else wayPointsGood.add(wp);
+
+        }
+        if(wayPointsGood.size()>0)
+        {
+            wayPointsGood.add(base);
+            System.out.println("\n\nCalculating matrix for " + wayPointsGood.size() + " relevant points\n");
+            matrixGood = Matrix.FillGHMulti4Map(wayPointsGood,osmFile,dir,true,true,true);
+        }
+
+        if(wayPointsBad.size()>0)
+        {
+            wayPointsBad.add(base);
+            System.out.println("\n\nCalculating matrix for " + wayPointsBad.size() + " irrelevant points\n");
+            matrixBad = Matrix.FillGHMulti4Map(wayPointsBad,osmFile,dir,false,false,true);
+        }
+
+
+        return new DoubleMatrix(matrixGood,matrixBad,wayPointsGood,wayPointsBad);
+    }
 
     public static List<MatrixLine> FillGHSingle(List<WayPoint> wayPoints)
     // using Graph Hopper on real map, single thread
     {
         List<MatrixLine> matrix = new ArrayList<>();
-
+/*
         GraphHopper hopper = new GraphHopperOSM().forServer();
 
         hopper.setEncodingManager(EncodingManager.create("car"));
         hopper.setGraphHopperLocation("local/graphhopper");
         hopper.setDataReaderFile("C:/Users/User/Downloads/RU-MOW.osm.pbf");
+
+ */
+        GraphHopper hopper = new GraphHopper();
+        hopper.setOSMFile("C:/Users/User/Downloads/RU-MOW.osm.pbf");
+        hopper.setGraphHopperLocation("local/graphhopper");
 
         // see docs/core/profiles.md to learn more about profiles
         hopper.setProfiles(

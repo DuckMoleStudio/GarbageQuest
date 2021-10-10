@@ -1,9 +1,7 @@
 package GarbageQuest;
 
 import GarbageQuest.entity.*;
-import GarbageQuest.service.AlgCircularMatrixMapV01;
-import GarbageQuest.service.AlgGreedyMatrixMapV01;
-import GarbageQuest.service.AlgGreedyMatrixV01;
+import GarbageQuest.service.*;
 import GarbageQuest.supplimentary.DistType;
 import GarbageQuest.supplimentary.MockTimeSlots;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,18 +21,18 @@ public class ItineraryCalcCircle {
     public static void main(String[] args) {
 
         // ----- CONTROLS (set before use) -----------
-        String jsonInputFile = "C:\\Users\\User\\Documents\\GD\\kuntsevo-park2.json"; // should exist!
+        String jsonInputFile = "C:\\Users\\User\\Documents\\GD\\hamovniki-park-good.json"; // should exist!
 
 
-        int avgSpeed = 10; // Average garbage car speed in m/s, 10 is roughly 30 km/h
-        int maxTime = 900; // max circulation time in seconds
-        int trim = 10; // correction value for special cases, don't set low (<10000) unless smth wrong
+
+        int maxTime = 1200000; // max circulation time in MILLIseconds
+        int trim = 10000000; // correction value for special cases, don't set low (<1000000) unless smth wrong
 
         //result display options
         boolean fullItinerary = false; // all with waypoints
         boolean shortItinerary = true; // all as summary
 
-        String urlOutputFile = "C:\\Users\\User\\Documents\\GD\\kuntsevo-park3.txt";
+        String urlOutputFile = "C:\\Users\\User\\Documents\\GD\\hamovniki-park-good001.txt";
         // ----- CONTROLS END ---------
 
 
@@ -91,7 +89,7 @@ public class ItineraryCalcCircle {
         // ------- NOW RUN ALGO -------
 
         double startTime = System.currentTimeMillis();
-        Result rr = AlgCircularMatrixMapV01.Calculate(wayPointList, matrix, avgSpeed, maxTime, trim);
+        Result rr = AlgCircularMatrixMapV02.Calculate(wayPointList, matrix, maxTime);
         double elapsedTime = System.currentTimeMillis() - startTime;
 
         // ------- DISPLAY IN DESIRED FORMAT ------
@@ -100,10 +98,10 @@ public class ItineraryCalcCircle {
             {
                 System.out.println("\n\n"+ii.getCar().getDescription());
 
-                System.out.println(ii.getDistance());
+                System.out.println(ii.getDistance()/1000);
                 for(WayPoint ww : ii.getWayPointList())
                 {
-                    System.out.print(ww.getDescription()+" -> ");
+                    System.out.print(ww.getIndex()+" -> ");
                 }
             }
 
@@ -113,12 +111,12 @@ public class ItineraryCalcCircle {
                 System.out.println("\n"+ii.getCar().getDescription());
                 System.out.println("No. of waypoints: " + ii.getWayPointList().size());
 
-                System.out.println("Route distance: " + round(ii.getDistance())/1000);
-                System.out.println("Route circulation time: " + round(ii.getDistance())/avgSpeed);
+                //System.out.println("Route distance: " + round(ii.getDistance())/1000);
+                System.out.println("Route circulation time: " + ii.getDistance());
                 System.out.println("Avg hop: " + round(ii.getDistance()/(ii.getWayPointList().size())));
             }
 
-        System.out.println("\n\nTotal distance: " + round(rr.getDistanceTotal()) / 1000 + " km");
+        System.out.println("\n\nTotal time: " + round(rr.getDistanceTotal()) / 1000 + " sec");
         System.out.println("Cars assigned: " + rr.getItineraryQty());
         System.out.println("Calculated in: " + elapsedTime + " ms");
 

@@ -22,12 +22,22 @@
         </dependency>
 
 
-        <!-- https://mvnrepository.com/artifact/com.graphhopper/graphhopper-reader-osm -->
+        <!-- https://mvnrepository.com/artifact/com.graphhopper/graphhopper-core -->
         <dependency>
             <groupId>com.graphhopper</groupId>
-            <artifactId>graphhopper-reader-osm</artifactId>
-            <version>2.4</version>
+            <artifactId>graphhopper-core</artifactId>
+            <version>4.0</version>
         </dependency>
+
+
+        <!-- https://mvnrepository.com/artifact/com.graphhopper/graphhopper-web-bundle -->
+        <dependency>
+            <groupId>com.graphhopper</groupId>
+            <artifactId>graphhopper-web-bundle</artifactId>
+            <version>4.0</version>
+        </dependency>
+
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>

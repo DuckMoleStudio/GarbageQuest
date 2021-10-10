@@ -30,28 +30,37 @@ public class MatrixLoaderXLS {
     public static void main(String[] args) throws IOException {
 
         // ----- CONTROLS (set before use) -----------
-        String XLSInputFile = "C:\\Users\\User\\Documents\\GD\\park_all.xls";
+        String XLSInputFile1 = "C:\\Users\\User\\Documents\\GD\\park_all.xls";
+        String XLSInputFile2 = "C:\\Users\\User\\Documents\\GD\\signs_all.xls";
         boolean filterByRegion = true; // true for Region, false for AO
-        String filter = "муниципальный округ Кунцево"; // "Северо-Восточный административный округ", ...
+        String filter = "муниципальный округ Черемушки"; // "Северо-Восточный административный округ", ...
 
         //OSM data
         String osmFile = "C:/Users/User/Downloads/RU-MOW.osm.pbf";
         String dir = "local/graphhopper";
 
-        String jsonOutputFile = "C:\\Users\\User\\Documents\\GD\\kuntsevo-park2.json";
+        String jsonOutputFile1 = "C:\\Users\\User\\Documents\\GD\\cheremushki-park-good.json";
+        String jsonOutputFile2 = "C:\\Users\\User\\Documents\\GD\\cheremushki-park-bad.json";
 
         boolean runAlgo = true; // execute itinerary routing algo at this stage?
-        int avgSpeed = 10; // Average video complex car speed in m/s, 10 is roughly 30 km/h
-        int maxTime = 900; // max time for circulation
-        int trim = 10000; // correction value for special cases, don't set low (<10000) unless smth wrong
+        //int avgSpeed = 10; // Average video complex car speed in m/s, 10 is roughly 30 km/h
+        int maxTime = 600000; // max time for circulation in ms
+        int trim = 10000000; // correction value for special cases, don't set low (<10000000) unless smth wrong
         // ----- CONTROLS END ---------
 
 
 
         // ----- IMPORT FROM XLS & PARSE ------
         StopWatch sw = new StopWatch().start();
-        List<XLSPaidParkings> input = XLSImport.loadXLSPaidParkings(XLSInputFile);
-        System.out.println("XLS loaded in: " + sw.stop().getSeconds() + " s");
+        List<XLSPaidParkings> input = XLSImport.loadXLSPaidParkings(XLSInputFile1);
+        System.out.println("XLS parkings loaded in: " + sw.stop().getSeconds() + " s");
+
+
+        sw = new StopWatch().start();
+        input.addAll(XLSImport.loadXLSPaidParkings(XLSInputFile2));
+        System.out.println("XLS signs loaded in: " + sw.stop().getSeconds() + " s");
+
+
 
         List<WayPoint> wayPointList = new ArrayList<>();
         for (XLSPaidParkings pp : input)
@@ -68,64 +77,107 @@ public class MatrixLoaderXLS {
             wp.setLon(Double.parseDouble(digits[1]));
 
             wp.setType(WayPointType.Paid_Parking);
+            wp.setCapacity(1);
             wayPointList.add(wp);
             }
 
-        System.out.println("\nLoaded " + wayPointList.size() + " sites for " + filter);
+        System.out.println("\nLoaded " + wayPointList.size() + " points for " + filter);
 
-        // ---- ADD BASE ----
+        // ---- CREATE BASE ----
 
-        wayPointList.add(new WayPoint(0, 55.73235400160589, 37.54848003387452, "BASE",  // example ))
+        WayPoint base = new WayPoint(0, 55.73235400160589, 37.54848003387452, "BASE",  // example ))
                 LocalTime.parse("06:00"), LocalTime.parse("08:00"), Duration.ofMinutes(1),
-                WayPointType.Base, 1));
+                WayPointType.Base, 1);
 
 
-        // ------ NOW FILL THE MATRIX -----
+        // ------ NOW FILL MATRICES -----
 
         sw = new StopWatch().start();
-        Map<WayPoint,MatrixLineMap> matrix = Matrix.FillGHMulti4Map(
-                wayPointList, osmFile, dir, true, true);
+        DoubleMatrix doubleMatrix = Matrix.FillGHDoubleTime(
+                wayPointList,osmFile,dir,base);
+       // Map<WayPoint,MatrixLineMap> matrix = Matrix.FillGHMulti4Map(
+        //        wayPointList, osmFile, dir, true, true);
         System.out.println("\nMatrix calculated in: " + sw.stop().getSeconds() + " s\n");
 
-        // ----- AND SAVE THE MATRIX IN JSON -----
+        // ----- AND SAVE MATRICES IN JSON -----
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
 
-        try (FileWriter writer = new FileWriter(jsonOutputFile)) {
-            for (WayPoint wp : wayPointList)
-            {
-                MatrixStorageLine msl = new MatrixStorageLine();
-                msl.setWayPoint(wp);
+        if(doubleMatrix.getMapGood().size()>0) {
+            try (FileWriter writer = new FileWriter(jsonOutputFile1)) {
+                for (WayPoint wp : doubleMatrix.getWayPointsGood()) {
+                    MatrixStorageLine msl = new MatrixStorageLine();
+                    msl.setWayPoint(wp);
 
-                List<Double> dd = new ArrayList<>();
-                for(WayPoint wwp : wayPointList)
-                {
-                    dd.add(matrix.get(wp).getDistances().get(wwp));
+                    List<Double> dd = new ArrayList<>();
+                    for (WayPoint wwp : doubleMatrix.getWayPointsGood()) {
+                        dd.add(doubleMatrix.getMapGood().get(wp).getDistances().get(wwp));
+                    }
+
+                    msl.setDistances(dd);
+
+                    writer.write(objectMapper.writeValueAsString(msl));
+                    writer.write("\n");
                 }
-
-                msl.setDistances(dd);
-
-                writer.write(objectMapper.writeValueAsString(msl));
-                writer.write("\n");
+                writer.flush();
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
             }
-            writer.flush();
-        } catch (IOException ex) {
-            System.out.println(ex.getMessage());
+
+            System.out.println("Saved as: " + jsonOutputFile1);
         }
 
-        System.out.println("Saved as: " + jsonOutputFile);
+        if(doubleMatrix.getMapBad().size()>0) {
+            try (FileWriter writer = new FileWriter(jsonOutputFile2)) {
+                for (WayPoint wp : doubleMatrix.getWayPointsBad()) {
+                    MatrixStorageLine msl = new MatrixStorageLine();
+                    msl.setWayPoint(wp);
+
+                    List<Double> dd = new ArrayList<>();
+                    for (WayPoint wwp : doubleMatrix.getWayPointsBad()) {
+                        dd.add(doubleMatrix.getMapBad().get(wp).getDistances().get(wwp));
+                    }
+
+                    msl.setDistances(dd);
+
+                    writer.write(objectMapper.writeValueAsString(msl));
+                    writer.write("\n");
+                }
+                writer.flush();
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
+            }
+
+            System.out.println("Saved as: " + jsonOutputFile2 + "\n");
+        }
 
 
         // ----- EXECUTE ITINERARY ALGORITHM IF DESIRED -----
         if(runAlgo)
         {
-            long startTime = System.currentTimeMillis();
-            Result rr = AlgCircularMatrixMapV01.Calculate(wayPointList, matrix, avgSpeed, maxTime,trim);
-            long elapsedTime = System.currentTimeMillis() - startTime;
+            if(doubleMatrix.getMapGood().size()>0) {
+                long startTime = System.currentTimeMillis();
+                Result rr = AlgCircularMatrixMapV01.Calculate(
+                        doubleMatrix.getWayPointsGood(), doubleMatrix.getMapGood(), maxTime, trim);
+                long elapsedTime = System.currentTimeMillis() - startTime;
 
-            System.out.println("\n\nTotal distance: " + round(rr.getDistanceTotal()) / 1000 + " km");
-            System.out.println("Cars assigned: " + rr.getItineraryQty());
-            System.out.println("Calculated in: " + elapsedTime + " ms");
+                System.out.println("\n\nTotal time: " + round(rr.getDistanceTotal()) / 1000 + " sec");
+                System.out.println("Cars assigned: " + rr.getItineraryQty());
+                System.out.println("Calculated in: " + elapsedTime + " ms\n");
+            }
+
+            if(doubleMatrix.getMapBad().size()>0) {
+                long startTime = System.currentTimeMillis();
+                Result rr = AlgCircularMatrixMapV01.Calculate(
+                        doubleMatrix.getWayPointsBad(), doubleMatrix.getMapBad(), maxTime, trim);
+                long elapsedTime = System.currentTimeMillis() - startTime;
+
+                System.out.println("\n\nTotal time: " + round(rr.getDistanceTotal()) / 1000 + " sec");
+                System.out.println("Cars assigned: " + rr.getItineraryQty());
+                System.out.println("Calculated in: " + elapsedTime + " ms\n");
+            }
+
+
         }
     }
 }

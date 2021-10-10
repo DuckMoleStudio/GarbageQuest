@@ -1,5 +1,5 @@
 import GarbageQuest.mosData.GarbageSiteMD;
-import GarbageQuest.service.MosDataImport;
+import GarbageQuest.service.MosDataImportGarbage;
 import com.graphhopper.util.StopWatch;
 import org.junit.Test;
 
@@ -10,7 +10,7 @@ public class LoadMDjson {
     public void PrintSomeFields()
     {
         StopWatch sw = new StopWatch().start();
-        List<GarbageSiteMD> res = MosDataImport.Load("C:\\Users\\User\\Documents\\MDjson-ALL.json");
+        List<GarbageSiteMD> res = MosDataImportGarbage.Load("C:\\Users\\User\\Documents\\MDjson-ALL.json");
         System.out.println("\nCalculated in: " + sw.stop().getSeconds() + " s\n");
 
         for (int i=100; i<110; i++)

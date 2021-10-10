@@ -22,15 +22,15 @@ public class ItineraryCalcMap {
     public static void main(String[] args) {
 
         // ----- CONTROLS (set before use) -----------
-        String jsonInputFile = "C:\\Users\\User\\Documents\\GD\\kuntsevo-m.json"; // should exist!
+        String jsonInputFile = "C:\\Users\\User\\Documents\\GD\\of.json"; // should exist!
 
         // random timeslot generation params
-        boolean newRandomTime = false; // do we need timeslots recalculation
+        boolean newRandomTime = true; // do we need timeslots recalculation
         int timeStartMin = 6; // opening time, hours in 24h
-        int timeStartMax = 7; // non-inclusive
+        int timeStartMax = 12; // non-inclusive
         DistType timeDist = DistType.Descend; // Statistic distribution, Equal, Gaussian, asc&desc Expo
-        int intervalMin = 8; // availability from open to close, hours
-        int intervalMax = 9; // non-inclusive
+        int intervalMin = 1; // availability from open to close, hours
+        int intervalMax = 7; // non-inclusive
         DistType intervalDist = DistType.Ascend;
 
         int avgSpeed = 10; // Average garbage car speed in m/s, 10 is roughly 30 km/h
@@ -40,7 +40,7 @@ public class ItineraryCalcMap {
         boolean fullItinerary = false; // all with waypoints
         boolean shortItinerary = true; // all as summary
 
-        String urlOutputFile = "C:\\Users\\User\\Documents\\GD\\zao001.txt";
+        String urlOutputFile = "C:\\Users\\User\\Documents\\GD\\of2.txt";
         // ----- CONTROLS END ---------
 
 

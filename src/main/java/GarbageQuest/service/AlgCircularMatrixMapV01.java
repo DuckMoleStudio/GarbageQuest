@@ -12,7 +12,7 @@ public class AlgCircularMatrixMapV01 {
     public static Result Calculate(
             List<WayPoint> wayPoints,
             Map<WayPoint,MatrixLineMap> matrix,
-            int avgSpeed,
+          //  int avgSpeed,
             int maxTime,
             int trim){
 
@@ -89,7 +89,7 @@ public class AlgCircularMatrixMapV01 {
                     me = Matrix.Nearest2PairMap(oldHop.getFrom(), oldHop.getTo(), matrix, subWP, trim);
                     WayPoint newWP = me.getWayPoint();
 
-                    if ((totalDistance + me.getDistance() - oldDistance) < avgSpeed * maxTime) {
+                    if ((totalDistance + me.getDistance() - oldDistance) < maxTime) {
                         //new 2 hops
                         hopMap.put(Matrix.DistanceBetweenMap(oldHop.getFrom(), newWP, matrix),
                                 new Hop(oldHop.getFrom(), newWP));

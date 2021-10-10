@@ -15,12 +15,20 @@ public class CurbSide {
     @Test
     public void WithAndWithout()
     {
-        GraphHopper hopper = new GraphHopperOSM().forServer();
+
+        /*GraphHopper hopper = new GraphHopperOSM().forServer();
 
         //hopper.setEncodingManager(EncodingManager.create("car"));
         hopper.setEncodingManager(EncodingManager.create("car|turn_costs=true"));
         hopper.setGraphHopperLocation("local/graphhopper");
         hopper.setDataReaderFile("C:/Users/User/Downloads/RU-MOW.osm.pbf");
+
+         */
+
+        GraphHopper hopper = new GraphHopper();
+        hopper.setOSMFile("C:/Users/User/Downloads/RU-MOW.osm.pbf");
+        hopper.setGraphHopperLocation("local/graphhopper");
+
 
         // see docs/core/profiles.md to learn more about profiles
         hopper.setProfiles(

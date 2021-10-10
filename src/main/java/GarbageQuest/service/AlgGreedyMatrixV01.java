@@ -61,6 +61,10 @@ public class AlgGreedyMatrixV01 {
             WayPoint curWP = start;
             LocalTime curTime = LocalTime.parse("06:00");
 
+            List<LocalTime> tt = new ArrayList<>();
+            tt.add(curTime);
+            itinerary.setArrivals(tt);
+
             long minWait=-1; // reset
             long curWait;
             List<WayPoint> tmpWP = new ArrayList<>(); // for temporary non-available
@@ -87,6 +91,7 @@ public class AlgGreedyMatrixV01 {
                         itinerary.getWayPointList().add(tryWP);
                         itinerary.setDistance(itinerary.getDistance()+curDistance);
                         curTime = curTime.plus(Duration.ofSeconds((long)curDistance/avgSpeed)); // enroute time
+                        itinerary.getArrivals().add(curTime);
                         curTime = curTime.plus(tryWP.getDuration()); // loading time
                         curWP = tryWP;
                         wayPoints.remove(tryWP);
@@ -104,6 +109,7 @@ public class AlgGreedyMatrixV01 {
 
                             itinerary.setDistance(itinerary.getDistance()+curDistance);
                             curTime = curTime.plus(Duration.ofSeconds((long)curDistance/avgSpeed)); // enroute time
+                            itinerary.getArrivals().add(curTime);
                             curTime = curTime.plus(dump.getDuration()); // unloading time
                             curWP = dump;
                             curLoad = 0;
@@ -130,7 +136,7 @@ public class AlgGreedyMatrixV01 {
             result.getItineraries().add(itinerary);
             result.setDistanceTotal(result.getDistanceTotal()+itinerary.getDistance());
 
-            //System.out.println("Iteration " + itCount + " completed in "+ (System.currentTimeMillis()-startTime));
+            System.out.println("Iteration " + itCount + " completed in "+ (System.currentTimeMillis()-startTime));
         }
         // now complete result
         result.setItineraryQty(itCount);
