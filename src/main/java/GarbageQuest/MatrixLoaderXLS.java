@@ -1,27 +1,18 @@
 package GarbageQuest;
 
 import GarbageQuest.entity.*;
-import GarbageQuest.mosData.GarbageSiteMD;
 import GarbageQuest.mosData.XLSPaidParkings;
 import GarbageQuest.service.*;
-import GarbageQuest.supplimentary.DistType;
-import GarbageQuest.supplimentary.MockTimeSlots;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.graphhopper.util.StopWatch;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.lang.Math.round;
 
@@ -33,17 +24,18 @@ public class MatrixLoaderXLS {
         String XLSInputFile1 = "C:\\Users\\User\\Documents\\GD\\park_all.xls";
         String XLSInputFile2 = "C:\\Users\\User\\Documents\\GD\\signs_all.xls";
         boolean filterByRegion = true; // true for Region, false for AO
-        String filter = "муниципальный округ Черемушки"; // "Северо-Восточный административный округ", ...
+        String filter = "муниципальный округ Арбат"; // "Северо-Восточный административный округ", ...
+        String filter1 = "муниципальный округ Хамовники"; // "Северо-Восточный административный округ", ...
 
         //OSM data
         String osmFile = "C:/Users/User/Downloads/RU-MOW.osm.pbf";
         String dir = "local/graphhopper";
 
-        String jsonOutputFile1 = "C:\\Users\\User\\Documents\\GD\\cheremushki-park-good.json";
-        String jsonOutputFile2 = "C:\\Users\\User\\Documents\\GD\\cheremushki-park-bad.json";
+        String jsonOutputFile1 = "C:\\Users\\User\\Documents\\GD\\ah-park-good.json";
+        String jsonOutputFile2 = "C:\\Users\\User\\Documents\\GD\\ah-park-bad.json";
 
         boolean runAlgo = true; // execute itinerary routing algo at this stage?
-        //int avgSpeed = 10; // Average video complex car speed in m/s, 10 is roughly 30 km/h
+
         int maxTime = 600000; // max time for circulation in ms
         int trim = 10000000; // correction value for special cases, don't set low (<10000000) unless smth wrong
         // ----- CONTROLS END ---------
@@ -64,7 +56,7 @@ public class MatrixLoaderXLS {
 
         List<WayPoint> wayPointList = new ArrayList<>();
         for (XLSPaidParkings pp : input)
-            if ((pp.getDistrict().equals(filter) && filterByRegion)
+            if (((pp.getDistrict().equals(filter)||pp.getDistrict().equals(filter1)) && filterByRegion)
                     || (pp.getAdmArea().equals(filter) && !filterByRegion))
         {
             WayPoint wp = new WayPoint();
@@ -85,7 +77,7 @@ public class MatrixLoaderXLS {
 
         // ---- CREATE BASE ----
 
-        WayPoint base = new WayPoint(0, 55.73235400160589, 37.54848003387452, "BASE",  // example ))
+        WayPoint base = new WayPoint(0, 55.75468, 37.69016, "BASE",  // ул. Золоторожский Вал, 4А ))
                 LocalTime.parse("06:00"), LocalTime.parse("08:00"), Duration.ofMinutes(1),
                 WayPointType.Base, 1);
 

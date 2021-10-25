@@ -2,11 +2,7 @@ package GarbageQuest.service;
 
 import GarbageQuest.entity.*;
 
-import java.time.Duration;
-import java.time.LocalTime;
 import java.util.*;
-
-import static java.lang.Math.round;
 
 public class AlgCircularMatrixMapV02 {
     public static Result Calculate(

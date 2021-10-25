@@ -4,8 +4,6 @@ import GarbageQuest.entity.*;
 
 import java.util.*;
 
-import static java.lang.Math.round;
-
 public class AlgCircularMatrixMapCompl {
     public static ResultComplex Calculate(
             List<WayPoint> wayPoints,

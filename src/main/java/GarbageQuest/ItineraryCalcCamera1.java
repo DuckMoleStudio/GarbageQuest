@@ -20,12 +20,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.round;
 
-public class ItineraryCalcCircComplex {
+public class ItineraryCalcCamera1 {
     public static void main(String[] args) {
 
         // ----- CONTROLS (set before use) -----------
@@ -35,11 +36,13 @@ public class ItineraryCalcCircComplex {
         String osmFile = "C:/Users/User/Downloads/RU-MOW.osm.pbf";
         String dir = "local/graphhopper";
 
-        int maxTime = 600000; // max circulation time in MILLIseconds
-        int noOfCars = 3;
-        boolean good=true; // good -- with relevant access from right curbside
 
-        String urlOutputFile = "C:\\Users\\User\\Documents\\GD\\ah-park-good001.txt";
+        int noOfCars = 2;
+        boolean good=true; // good -- with relevant access from right curbside
+        int capacity = 840;
+        int iterations = 50; // these 2 for jsprit algo
+
+        String urlOutputFile = "C:\\Users\\User\\Documents\\GD\\ah-park-good002j.txt";
         String outDir ="C:\\Users\\User\\Documents\\GD\\tracks\\ah";
         // ----- CONTROLS END ---------
 
@@ -94,10 +97,12 @@ public class ItineraryCalcCircComplex {
                 " points" );
 
 
+
         // ------- NOW RUN ALGO -------
 
         double startTime = System.currentTimeMillis();
-        ResultComplex rr = AlgCircularMatrixMapCompl.Calculate(wayPointList, matrix, maxTime, noOfCars);
+        Result rr = AlgJspritGeneral.Calculate(wayPointList, matrix, capacity, iterations);
+        //Result rr = AlgGreedySimpleV01.Calculate(wayPointList, matrix, noOfCars);
         double elapsedTime = System.currentTimeMillis() - startTime;
 
 
@@ -108,7 +113,7 @@ public class ItineraryCalcCircComplex {
 
 
 
-        // ----- SAVE RESULTS FOR VISUALISATION IN GH ------
+        // ----- SAVE RESULTS FOR VISUALISATION ------
         //https://graphhopper.com/maps/?
         // point=55.726627%2C37.529984&
         // point=55.723702%2C37.525392&
@@ -117,24 +122,21 @@ public class ItineraryCalcCircComplex {
 
         try (FileWriter writer = new FileWriter(urlOutputFile))
         {
-            for(Car car: rr.getCars())
+            for (Itinerary iii : rr.getItineraries())
             {
-                writer.write("\n\nCar: " + car + "\n\n");
-                for (ItineraryCirc ii : rr.getItineraries().get(car))
+                String url = "https://graphhopper.com/maps/?";
+                for(WayPoint wp: iii.getWayPointList())
                 {
-                    String url = "https://graphhopper.com/maps/?";
-                    for (WayPoint wp : ii.getWayPointList()) {
-                        url += "point=";
-                        url += wp.getLat();
-                        url += "%2C";
-                        url += wp.getLon();
-                        url += "&";
-                    }
-                    url += "locale=ru-RU&profile=car&use_miles=false";
-
-                    writer.write(url);
-                    writer.write("\n\n");
+                    url+="point=";
+                    url+=wp.getLat();
+                    url+="%2C";
+                    url+=wp.getLon();
+                    url+="&";
                 }
+                url+="locale=ru-RU&profile=car&use_miles=false";
+
+                writer.write(url);
+                writer.write("\n\n");
             }
             writer.flush();
         }
@@ -143,7 +145,6 @@ public class ItineraryCalcCircComplex {
             System.out.println(ex.getMessage());
         }
         System.out.println("\nSaved as: " + urlOutputFile);
-
 
         // SAVE RESULTS AS GPX TRACKS
 
@@ -159,12 +160,11 @@ public class ItineraryCalcCircComplex {
         hopper.getCHPreparationHandler().setCHProfiles(new CHProfile("car1"), new CHProfile("car2"));
         hopper.importOrLoad();
 
-        for(Car car: rr.getCars())
-        {
-            for (ItineraryCirc ii : rr.getItineraries().get(car))
+
+        int j=0;
+            for (Itinerary ii : rr.getItineraries())
             {
-                String GPXFileName = outDir + "\\car" + (rr.getCars().indexOf(car)+1) + "-" +
-                        (rr.getItineraries().get(car).indexOf(ii)+1) + ".gpx";
+                String GPXFileName = outDir + "\\car0" + (j++) + ".gpx";
 
                 GHRequest req = new GHRequest().setAlgorithm(Parameters.Algorithms.ASTAR_BI);
 
@@ -193,8 +193,7 @@ public class ItineraryCalcCircComplex {
                     throw new RuntimeException(res.getErrors().toString());
                 }
 
-                String trackName = "Car # " + (rr.getCars().indexOf(car)+1) + " route # " +
-                        (rr.getItineraries().get(car).indexOf(ii)+1);
+                String trackName = "Car # " + (j);
 
                 String gpx = GpxConversions.createGPX(
                         res.getBest().getInstructions(),
@@ -218,6 +217,6 @@ public class ItineraryCalcCircComplex {
                     e.printStackTrace();
                 }
             }
-        }
+
     }
 }

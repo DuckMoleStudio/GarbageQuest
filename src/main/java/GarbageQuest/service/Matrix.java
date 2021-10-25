@@ -6,8 +6,7 @@ import com.graphhopper.GHResponse;
 import com.graphhopper.GraphHopper;
 import com.graphhopper.config.CHProfile;
 import com.graphhopper.config.Profile;
-import com.graphhopper.reader.osm.GraphHopperOSM;
-import com.graphhopper.routing.util.EncodingManager;
+
 import com.graphhopper.util.Parameters;
 
 import java.util.*;
@@ -52,14 +51,7 @@ public class Matrix {
     // using Graph Hopper on real map, with 4 threads
     {
         List<MatrixLine> matrix = new ArrayList<>();
-        /*
-        GraphHopper hopper = new GraphHopperOSM().forServer();
 
-        hopper.setEncodingManager(EncodingManager.create("car"));
-        hopper.setGraphHopperLocation(dir);
-        hopper.setDataReaderFile(osmFile);
-
-         */
         GraphHopper hopper = new GraphHopper();
         hopper.setOSMFile(osmFile);
         hopper.setGraphHopperLocation(dir);
@@ -176,14 +168,7 @@ public class Matrix {
     {
 
         Map<WayPoint, MatrixLineMap> matrix = new HashMap<>();
-/*
-        GraphHopper hopper = new GraphHopperOSM().forServer();
 
-        hopper.setEncodingManager(EncodingManager.create("car|turn_costs=true"));
-        hopper.setGraphHopperLocation(dir);
-        hopper.setDataReaderFile(osmFile);
-
- */
         GraphHopper hopper = new GraphHopper();
         hopper.setOSMFile(osmFile);
         hopper.setGraphHopperLocation(dir);
@@ -330,14 +315,7 @@ public class Matrix {
         Map<WayPoint, MatrixLineMap> matrixBad = new HashMap<>();
         List<WayPoint> wayPointsGood = new ArrayList<>();
         List<WayPoint> wayPointsBad = new ArrayList<>();
-/*
-        GraphHopper hopper = new GraphHopperOSM().forServer();
 
-        hopper.setEncodingManager(EncodingManager.create("car|turn_costs=true"));
-        hopper.setGraphHopperLocation(dir);
-        hopper.setDataReaderFile(osmFile);
-
- */
         GraphHopper hopper = new GraphHopper();
         hopper.setOSMFile(osmFile);
         hopper.setGraphHopperLocation(dir);
@@ -397,14 +375,7 @@ public class Matrix {
     // using Graph Hopper on real map, single thread
     {
         List<MatrixLine> matrix = new ArrayList<>();
-/*
-        GraphHopper hopper = new GraphHopperOSM().forServer();
 
-        hopper.setEncodingManager(EncodingManager.create("car"));
-        hopper.setGraphHopperLocation("local/graphhopper");
-        hopper.setDataReaderFile("C:/Users/User/Downloads/RU-MOW.osm.pbf");
-
- */
         GraphHopper hopper = new GraphHopper();
         hopper.setOSMFile("C:/Users/User/Downloads/RU-MOW.osm.pbf");
         hopper.setGraphHopperLocation("local/graphhopper");

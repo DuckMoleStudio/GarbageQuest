@@ -37,6 +37,28 @@
             <version>4.0</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.graphhopper/jsprit-core -->
+        <dependency>
+            <groupId>com.graphhopper</groupId>
+            <artifactId>jsprit-core</artifactId>
+            <version>1.8</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.graphhopper/jsprit-io -->
+        <dependency>
+            <groupId>com.graphhopper</groupId>
+            <artifactId>jsprit-io</artifactId>
+            <version>1.8</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.graphhopper/jsprit-analysis -->
+        <dependency>
+            <groupId>com.graphhopper</groupId>
+            <artifactId>jsprit-analysis</artifactId>
+            <version>1.8</version>
+        </dependency>
+
+
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
